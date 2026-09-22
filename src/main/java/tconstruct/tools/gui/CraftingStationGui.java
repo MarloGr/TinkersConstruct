@@ -111,6 +111,7 @@ public class CraftingStationGui extends GuiContainer implements INEIGuiHandler {
     private int chestTop = 0;
     private int chestWidth = 0;
     private ChestLayout chestLayout;
+    private final GuiRenderBenchmark renderBenchmark = new GuiRenderBenchmark();
 
     public CraftingStationGui(InventoryPlayer inventory, CraftingStationLogic logic, World world, int x, int y, int z) {
         super(logic.getGuiContainer(inventory, world, x, y, z));
@@ -320,14 +321,16 @@ public class CraftingStationGui extends GuiContainer implements INEIGuiHandler {
 
         this.mc.getTextureManager().bindTexture(gui_inventory);
         if (hasChest()) {
-            drawChest();
-
-            // slider
             if (slider.isEnabled()) {
                 slider.update(mouseX, mouseY, !isMouseOverFullSlot(mouseX, mouseY) && isMouseInChest(mouseX, mouseY));
-                slider.draw();
-
                 updateChestSlots();
+            }
+            renderBenchmark.start();
+            try {
+                drawChest();
+                if (slider.isEnabled()) slider.draw();
+            } finally {
+                renderBenchmark.end(mc.thePlayer);
             }
         }
         // Draw description
@@ -595,7 +598,11 @@ public class CraftingStationGui extends GuiContainer implements INEIGuiHandler {
         int fullRows = slotCount / columns;
         int slotsLeft = slotCount % columns;
 
-        slotElement.drawScaled(x, y, width, fullRows * slotElement.h);
+        if (GuiRenderBenchmark.legacy) {
+            for (int row = 0; row < fullRows; row++) slotElement.drawScaledX(x, y + row * slotElement.h, width);
+        } else {
+            slotElement.drawScaled(x, y, width, fullRows * slotElement.h);
+        }
 
         if (slotsLeft > 0) {
             int rowY = y + fullRows * slotElement.h;

@@ -68,9 +68,17 @@ public class GuiElementDuex {
      * @param yPos Y-Coordinate on the screen
      */
     public int draw(int xPos, int yPos) {
+        return draw(xPos, yPos, w, h);
+    }
+
+    protected int draw(int xPos, int yPos, int width, int height) {
+        if (GuiRenderBenchmark.counting) {
+            GuiRenderBenchmark.calls++;
+            GuiRenderBenchmark.quads++;
+        }
         // drawModalRectWithCustomSizedTexture
-        GuiScreen.func_146110_a(xPos, yPos, x, y, w, h, texW, texH);
-        return w;
+        GuiScreen.func_146110_a(xPos, yPos, x, y, width, height, texW, texH);
+        return width;
     }
 
     public static class Builder {

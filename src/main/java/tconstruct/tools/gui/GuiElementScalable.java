@@ -31,15 +31,37 @@ public class GuiElementScalable extends GuiElementDuex {
     }
 
     public int drawScaledX(int xPos, int yPos, int width) {
+        if (GuiRenderBenchmark.legacy) {
+            for (int i = 0; i < width / w; i++) draw(xPos + i * w, yPos);
+            int remainder = width % w;
+            if (remainder > 0) draw(xPos + width - remainder, yPos, remainder, h);
+            return width;
+        }
         return drawScaled(xPos, yPos, width, h);
     }
 
     public int drawScaledY(int xPos, int yPos, int height) {
+        if (GuiRenderBenchmark.legacy) {
+            for (int i = 0; i < height / h; i++) draw(xPos, yPos + i * h);
+            int remainder = height % h;
+            if (remainder > 0) draw(xPos, yPos + height - remainder, w, remainder);
+            return w;
+        }
         drawScaled(xPos, yPos, w, height);
         return w;
     }
 
     public int drawScaled(int xPos, int yPos, int width, int height) {
+        if (GuiRenderBenchmark.legacy) {
+            int full = height / h;
+            for (int i = 0; i < full; i++) drawScaledX(xPos, yPos + i * h, width);
+            yPos += full * h;
+            int yRest = height % h;
+            for (int i = 0; i < width / w; i++) drawScaledY(xPos + i * w, yPos, yRest);
+            int remainder = width % w;
+            if (remainder > 0) draw(xPos + width - remainder, yPos, remainder, yRest);
+            return width;
+        }
         if (width <= 0 || height <= 0) return width;
 
         Tessellator tessellator = Tessellator.instance;
@@ -48,6 +70,11 @@ public class GuiElementScalable extends GuiElementDuex {
         float minU = (float) x / texW;
         float minV = (float) y / texH;
 
+        if (GuiRenderBenchmark.counting) {
+            GuiRenderBenchmark.calls++;
+            GuiRenderBenchmark.quads += ((width + tileWidth - 1) / tileWidth)
+                    * ((height + tileHeight - 1) / tileHeight);
+        }
         tessellator.startDrawingQuads();
         for (int yOffset = 0; yOffset < height; yOffset += tileHeight) {
             int drawHeight = Math.min(tileHeight, height - yOffset);
